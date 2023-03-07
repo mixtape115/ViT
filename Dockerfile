@@ -1,4 +1,4 @@
-FROM nvidia/cuda:11.7.0-cudnn8-devel-ubuntu20.04
+FROM nvidia/cuda:11.6.0-cudnn8-devel-ubuntu20.04
 
 RUN DEBIAN_FRONTEND=noninteractive
 RUN apt-get update 
@@ -27,7 +27,7 @@ RUN python3 -m pip install opencv-python
 # RUN pip3 install -U pip wheel setuptools japanize-matplotlib
 RUN pip3 install jupyter click numpy matplotlib seaborn pandas tqdm
 # RUN pip install torch==1.10.1+cu111 torchvision==0.11.2+cu111 torchaudio==0.10.1 -f https://download.pytorch.org/whl/torch_stable.html
-RUN pip3 install torch torchvision torchaudio -f https://download.pytorch.org/whl/torch_stable.html
+RUN pip3 install torch==1.12.1+cu116 torchvision==0.13.1+cu116 torchaudio==0.12.1 --extra-index-url https://download.pytorch.org/whl/cu116
 RUN pip3 install visdom jupyter torchviz torchinfo japanize_matplotlib
 ENV USER_NAME=user
 ENV USER_UID=1000

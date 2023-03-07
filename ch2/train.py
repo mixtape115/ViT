@@ -4,6 +4,30 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+import torchvision
+import torchvision.transforms as transforms
+
+import torch.optim as optim
+import torch.nn as nn
+
+from torchinfo import summary
+
+transform = transforms.Compose(
+    [transforms.ToTensor(),
+     transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+
+train_set = torchvision.datasets.CIFAR10(root='./data', train=True, download=True, transform=transform)
+
+batch_size = 100
+
+train_loader = torch.utils.data.DataLoader(train_set, batch_size=batch_size, shuffle=True, num_workers=2)
+
+test_set = torchvision.datasets.CIFAR10(root='./data', train=False, download=True, transform=transform)
+
+test_loader = torch.utils.data.DataLoader(test_set, batch_size=batch_size, shuffle=False, num_workers=2)
+
+classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
+
 print("===========2-3 Input Layer==========")
 
 class VitInputLayer(nn.Module):
@@ -67,14 +91,14 @@ class VitInputLayer(nn.Module):
 
         ## パッチのflatten(B, D, H/P, W/P) -> (B, D, Np)
         ## ここで, Npはパッチの数(=H*W/P**2)
-        print('-----------------')
+        # print('-----------------')
         # torch.Size([2, 384, 2, 2])
-        print(z_0.shape)
+        # print(z_0.shape)
         # z_0.flatten(2)はz_0の3番目以降をflattenしますといういみ.たぶん.
         z_0 = z_0.flatten(2)
         # torch.Size([2, 384, 4])
-        print(z_0.shape)
-        print('-----------------')
+        # print(z_0.shape)
+        # print('-----------------')
 
 
         ## 軸の入れ替え (B, D, Np) -> (B, Np, D)
@@ -338,3 +362,60 @@ pred = vit(x)
 
 # (2, 10)(=(B, M))になっていることを確認 
 print(pred.shape)
+
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+print(device)
+
+net = Vit(
+    image_size=32,
+    num_patch_row=8,
+    num_classes=10,
+    emb_dim=256,
+    num_blocks=3,
+    head=4,
+    hidden_dim = 256
+).to(device)
+
+summary(net)
+
+criterion = nn.CrossEntropyLoss()
+optimizer = optim.SGD(net.parameters(), lr=0.01, momentum=0.9)
+
+epochs = 50
+for epoch in range(0, epochs):
+    epoch_train_loss = 0
+    epoch_train_acc = 0
+    epoch_test_loss = 0
+    epoch_test_acc = 0
+
+    net.train()
+    for data in train_loader:
+        inputs, labels = data[0].to(device), data[1].to(device)
+
+        optimizer.zero_grad()
+
+        outputs = net(inputs)
+        loss = criterion(outputs, labels)
+        loss.backward()
+        optimizer.step()
+
+        epoch_train_loss += loss.item()/len(train_loader)
+        acc = (outputs.argmax(dim=1) == labels).float().mean()
+        epoch_train_acc += acc/len(train_loader)
+
+        del inputs
+        del outputs
+        del loss
+
+    net.eval()
+    with torch.no_grad():
+        for data in test_loader:
+            inputs, labels = data[0].to(device), data[1].to(device)
+            outputs = net(inputs)
+            loss = criterion(outputs, labels)
+            epoch_test_loss += loss.item()/len(test_loader)
+            test_acc = (outputs.argmax(dim=1) == labels).float().mean()
+            epoch_test_acc += test_acc/len(test_loader)
+
+    print(f'Epoch {epoch+1} : train acc. {epoch_train_acc:.2f} train loss {epoch_train_loss:.2f}')
+    print(f'Epoch {epoch+1} : test acc. {epoch_test_acc:.2f} test loss {epoch_test_loss:.2f}')
