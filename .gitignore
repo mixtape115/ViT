@@ -1,1 +1,4 @@
 ch2/data/*
+ch3/*.pdf
+ch3/*
+!ch3/link.txt

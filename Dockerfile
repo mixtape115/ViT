@@ -25,7 +25,7 @@ RUN python3 -m pip install --upgrade pip setuptools
 RUN python3 -m pip install numpy
 RUN python3 -m pip install opencv-python
 # RUN pip3 install -U pip wheel setuptools japanize-matplotlib
-RUN pip3 install jupyter click numpy matplotlib seaborn pandas tqdm
+RUN pip3 install jupyter click numpy matplotlib seaborn pandas tqdm timm
 # RUN pip install torch==1.10.1+cu111 torchvision==0.11.2+cu111 torchaudio==0.10.1 -f https://download.pytorch.org/whl/torch_stable.html
 RUN pip3 install torch==1.12.1+cu116 torchvision==0.13.1+cu116 torchaudio==0.12.1 --extra-index-url https://download.pytorch.org/whl/cu116
 RUN pip3 install visdom jupyter torchviz torchinfo japanize_matplotlib
